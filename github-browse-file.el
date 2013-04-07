@@ -7,6 +7,11 @@
 ;; Version: 0.1
 ;; Keywords: convenience vc git github
 
+;;; Installation:
+
+;; Available as a package in Marmalade at http://marmalade-repo.org/
+;; M-x package-install github-browse-file
+
 ;; Usage:
 ;;    Call `github-browse-file' to view current file on GitHub. With a prefix
 ;;    argument (C-u) "blame" is shown instead of "blob".
