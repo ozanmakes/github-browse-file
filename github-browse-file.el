@@ -12,14 +12,15 @@
 ;; Available as a package in Marmalade at http://marmalade-repo.org/
 ;; M-x package-install github-browse-file
 
-;;; Usage:
+;;; Commentary:
+
 ;; Call `github-browse-file' (for the git blob) or `github-browse-file-blame'
 ;; (for the git blame) to view current file on GitHub. With a prefix argument
 ;; (C-u), you can force them to use the "master" branch.
 
-;; This file is NOT part of GNU Emacs.
-
 ;;; License:
+
+;; This file is NOT part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -125,4 +126,5 @@ region."
   (let ((github-browse-file--view-blame t))
     (github-browse-file force-master)))
 
+(provide 'github-browse-file)
 ;;; github-browse-file.el ends here
