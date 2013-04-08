@@ -54,7 +54,7 @@ Error out if this isn't a GitHub repo."
   (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
     (unless url (error "Not in a GitHub repo"))
     (when (and url (string-match "github.com:?/?\\(.*\\)" url))
-      (replace-regexp-in-string "\\.git" "" (match-string 1 url)))))
+      (replace-regexp-in-string "\\.git$" "" (match-string 1 url)))))
 
 (defun github-browse-file--repo-relative-path ()
   "Return the path to the current file relative to the repository root."
