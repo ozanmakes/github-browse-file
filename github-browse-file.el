@@ -110,7 +110,7 @@ region."
 
     (github-browse-file--browse-url
      (when (and transient-mark-mode mark-active)
-       (if (eq start end)
+       (if (>= start end)
            (format "L%d" start)
          (format "L%d-%d" start end))))))
 
