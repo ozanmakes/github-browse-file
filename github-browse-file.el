@@ -91,7 +91,7 @@ the kill ring."
     (browse-url url)))
 
 ;;;###autoload
-(defun github-browse-file (force-master)
+(defun github-browse-file (&optional force-master)
   "Show the GitHub webpage for the current file. The URL for the webpage is
 added to the kill ring. With a prefix argument, \"master\" is used
 regardless of the current branch.
@@ -115,7 +115,7 @@ region."
          (format "L%d-%d" start end))))))
 
 ;;;###autoload
-(defun github-browse-file-blame (force-master)
+(defun github-browse-file-blame (&optional force-master)
   "Show the GitHub blame page for the current file. The URL for the webpage is
 added to the kill ring. With a prefix argument, \"master\" is used
 regardless of the current branch.
