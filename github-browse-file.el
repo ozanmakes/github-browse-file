@@ -43,6 +43,11 @@
   "View the current file on GitHub"
   :group 'tools)
 
+(defcustom github-browse-file-show-line-at-point nil
+  "If non-nil, link to the current line or active region"
+  :group 'github-browse
+  :type 'boolean)
+
 (defvar github-browse-file--view-blame nil
   "If non-nil, view \"blame\" instead of \"blob\".
 This should only ever be `let'-bound, not set outright.")
@@ -95,14 +100,20 @@ the kill ring."
     (browse-url url)))
 
 (defun github-browse-file--anchor-lines ()
-  "Calculate anchor from lines in active region"
-  (when (and transient-mark-mode mark-active)
+  "Calculate anchor from lines in active region or current line
+
+If `github-browse-file-show-line-at-point' is non-nil, then
+default to current line."
+  (cond
+   ((and transient-mark-mode mark-active)
     (let ((start (line-number-at-pos (region-beginning)))
           (end (line-number-at-pos (region-end))))
       (when (eq (char-before (region-end)) ?\n) (decf end))
       (if (>= start end)
           (format "L%d" start)
-        (format "L%d-%d" start end)))))
+        (format "L%d-%d" start end))))
+   (github-browse-file-show-line-at-point
+    (format "L%d" (line-number-at-pos (point))))))
 
 ;;;###autoload
 (defun github-browse-file (&optional force-master)
