@@ -39,6 +39,10 @@
 
 (require 'vc-git)
 
+(defgroup github-browse-file nil
+  "View the current file on GitHub"
+  :group 'tools)
+
 (defvar github-browse-file--view-blame nil
   "If non-nil, view \"blame\" instead of \"blob\".
 This should only ever be `let'-bound, not set outright.")
