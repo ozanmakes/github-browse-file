@@ -43,6 +43,11 @@
   "View the current file on GitHub"
   :group 'tools)
 
+(defcustom github-browse-file-visit-url t
+  "If non-nil, run `browse-url' after saving url to kill ring"
+  :group 'github-browse
+  :type 'boolean)
+
 (defvar github-browse-file--view-blame nil
   "If non-nil, view \"blame\" instead of \"blob\".
 This should only ever be `let'-bound, not set outright.")
@@ -92,7 +97,9 @@ the kill ring."
                      (github-browse-file--repo-relative-path)
                      (when anchor (concat "#" anchor)))))
     (kill-new url)
-    (browse-url url)))
+    (if github-browse-file-visit-url
+        (browse-url url)
+      (message "GitHub: %s" url))))
 
 ;;;###autoload
 (defun github-browse-file (&optional force-master)
