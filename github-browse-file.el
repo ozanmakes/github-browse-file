@@ -45,12 +45,12 @@
 
 (defcustom github-browse-file-visit-url t
   "If non-nil, run `browse-url' after saving url to kill ring"
-  :group 'github-browse
+  :group 'github-browse-file
   :type 'boolean)
 
 (defcustom github-browse-file-show-line-at-point nil
   "If non-nil, link to the current line or active region"
-  :group 'github-browse
+  :group 'github-browse-file
   :type 'boolean)
 
 (defvar github-browse-file--view-blame nil
