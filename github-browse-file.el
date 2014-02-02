@@ -48,6 +48,11 @@
   :group 'github-browse
   :type 'boolean)
 
+(defcustom github-browse-file-show-line-at-point nil
+  "If non-nil, link to the current line or active region"
+  :group 'github-browse
+  :type 'boolean)
+
 (defvar github-browse-file--view-blame nil
   "If non-nil, view \"blame\" instead of \"blob\".
 This should only ever be `let'-bound, not set outright.")
@@ -101,6 +106,22 @@ the kill ring."
         (browse-url url)
       (message "GitHub: %s" url))))
 
+(defun github-browse-file--anchor-lines ()
+  "Calculate anchor from lines in active region or current line
+
+If `github-browse-file-show-line-at-point' is non-nil, then
+default to current line."
+  (cond
+   ((and transient-mark-mode mark-active)
+    (let ((start (line-number-at-pos (region-beginning)))
+          (end (line-number-at-pos (region-end))))
+      (when (eq (char-before (region-end)) ?\n) (decf end))
+      (if (>= start end)
+          (format "L%d" start)
+        (format "L%d-%d" start end))))
+   (github-browse-file-show-line-at-point
+    (format "L%d" (line-number-at-pos (point))))))
+
 ;;;###autoload
 (defun github-browse-file (&optional force-master)
   "Show the GitHub webpage for the current file. The URL for the webpage is
@@ -111,19 +132,8 @@ In Transient Mark mode, if the mark is active, highlight the contents of the
 region."
   (interactive "P")
   (let ((path (github-browse-file--repo-relative-path))
-        (github-browse-file--force-master force-master)
-        start
-        end)
-    (when mark-ring
-      (setq start (line-number-at-pos (region-beginning))
-            end (line-number-at-pos (region-end)))
-      (when (eq (char-before (region-end)) ?\n) (decf end)))
-
-    (github-browse-file--browse-url
-     (when (and transient-mark-mode mark-active)
-       (if (>= start end)
-           (format "L%d" start)
-         (format "L%d-%d" start end))))))
+        (github-browse-file--force-master force-master))
+    (github-browse-file--browse-url (github-browse-file--anchor-lines))))
 
 ;;;###autoload
 (defun github-browse-file-blame (&optional force-master)
