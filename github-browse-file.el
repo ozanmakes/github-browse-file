@@ -97,9 +97,10 @@ Otherwise, return the name of the current  branch."
 the kill ring."
   (let ((url (concat "https://github.com/"
                      (github-browse-file--relative-url) "/"
-                     (if (eq major-mode 'magit-status-mode) "tree"
-                       (if github-browse-file--view-blame "blame" "blob"))
-                     "/" (github-browse-file--current-rev) "/"
+                     (cond ((eq major-mode 'magit-status-mode) "tree")
+                           (github-browse-file--view-blame "blame")
+                           (t "blob")) "/"
+                     (github-browse-file--current-rev) "/"
                      (github-browse-file--repo-relative-path)
                      (when anchor (concat "#" anchor)))))
     (kill-new url)
