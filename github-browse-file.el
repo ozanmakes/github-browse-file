@@ -37,6 +37,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'vc-git)
 
 (defgroup github-browse-file nil
