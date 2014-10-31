@@ -6,6 +6,7 @@
 ;; Homepage: https://github.com/osener/github-browse-file
 ;; Version: 0.3.0
 ;; Keywords: convenience vc git github
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;;; Installation:
 
@@ -37,6 +38,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'vc-git)
 
 (defgroup github-browse-file nil
@@ -117,7 +119,7 @@ default to current line."
    ((and transient-mark-mode mark-active)
     (let ((start (line-number-at-pos (region-beginning)))
           (end (line-number-at-pos (region-end))))
-      (when (eq (char-before (region-end)) ?\n) (decf end))
+      (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
           (format "L%d" start)
         (format "L%d-%d" start end))))
