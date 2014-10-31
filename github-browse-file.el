@@ -117,7 +117,7 @@ default to current line."
    ((and transient-mark-mode mark-active)
     (let ((start (line-number-at-pos (region-beginning)))
           (end (line-number-at-pos (region-end))))
-      (when (eq (char-before (region-end)) ?\n) (decf end))
+      (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
           (format "L%d" start)
         (format "L%d-%d" start end))))
