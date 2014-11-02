@@ -20,3 +20,4 @@ For more information see [my blog post](http://ozansener.com/blog/view-the-file-
 
 ### Contributors
 * [Charles Comstock](https://github.com/dgtized)
+* [Yukihiro Hara](https://github.com/yukihr)
