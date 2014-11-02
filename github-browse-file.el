@@ -4,7 +4,7 @@
 
 ;; Author: Ozan Sener <ozan@ozansener.com>
 ;; Homepage: https://github.com/osener/github-browse-file
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Keywords: convenience vc git github
 ;; Package-Requires: ((cl-lib "0.5"))
 
