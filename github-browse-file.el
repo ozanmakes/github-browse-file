@@ -84,13 +84,28 @@ Error out if this isn't a GitHub repo."
     (and (> (length rev) 0)
          (string-equal (substring rev 0 1) ">"))))
 
+(defun github-browse-file--remote-branch ()
+  "Return the name of remote branch current branch is tracking.
+If there is none return 'master'."
+  (let* ((ref (replace-regexp-in-string
+               "\n" ""
+               (vc-git--run-command-string nil "symbolic-ref" "-q" "HEAD")))
+         (origin-branch (replace-regexp-in-string
+                         "\n" ""
+                         (vc-git--run-command-string
+                          nil "for-each-ref" "--format=%(upstream:short)" ref)))
+         (branch-name (mapconcat 'identity
+                                 (cdr (split-string origin-branch "/"))
+                                 "/")))
+    (if (eq branch-name "") "master" branch-name)))
+
 (defun github-browse-file--current-rev ()
   "Return the SHA1 of HEAD if it is not ahead of origin/master.
 If github-browse-file--force-master is non-nil, return \"master\".
 Otherwise, return the name of the current  branch."
   (cond
    (github-browse-file--force-master "master")
-   ((github-browse-file--ahead-p) (car (vc-git-branches)))
+   ((github-browse-file--ahead-p) (github-browse-file--remote-branch))
    (t (let ((rev (vc-git--run-command-string nil "rev-parse" "HEAD")))
         (and rev (replace-regexp-in-string "\n" "" rev))))))
 
