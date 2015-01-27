@@ -166,5 +166,14 @@ region."
   (let ((github-browse-file--view-blame t))
     (github-browse-file force-master)))
 
+;;;###autoload
+(defun github-browse-new-issue ()
+  "Open the new issue page for this Github repository."
+  (interactive)
+  (let ((url (concat "https://github.com/"
+                     (github-browse-file--relative-url)
+                     "/issues/new")))
+    (browse-url url)))
+
 (provide 'github-browse-file)
 ;;; github-browse-file.el ends here
