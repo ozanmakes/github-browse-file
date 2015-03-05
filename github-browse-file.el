@@ -117,9 +117,9 @@ the kill ring."
                      (cond ((eq major-mode 'magit-status-mode) "tree")
                            (github-browse-file--view-blame "blame")
                            (t "blob")) "/"
-                     (github-browse-file--current-rev) "/"
-                     (github-browse-file--repo-relative-path)
-                     (when anchor (concat "#" anchor)))))
+                           (github-browse-file--current-rev) "/"
+                           (github-browse-file--repo-relative-path)
+                           (when anchor (concat "#" anchor)))))
     (kill-new url)
     (if github-browse-file-visit-url
         (browse-url url)
@@ -140,6 +140,18 @@ default to current line."
         (format "L%d-%d" start end))))
    (github-browse-file-show-line-at-point
     (format "L%d" (line-number-at-pos (point))))))
+
+(defun github-browse-file--guess-commit ()
+  "Guess the current git commit.
+If you are in any magit mode, use `magit-branch-or-commit-at-point'.
+Otherwise, if the region is active, use that.
+Otherwse, use `github-browse-file--current-rev'."
+  (cond
+   ((derived-mode-p 'magit-mode)
+    (magit-branch-or-commit-at-point))
+   ((region-active-p)
+    (buffer-substring (region-beginning) (region-end)))
+   (t (github-browse-file--current-rev))))
 
 ;;;###autoload
 (defun github-browse-file (&optional force-master)
@@ -165,6 +177,19 @@ region."
   (interactive "P")
   (let ((github-browse-file--view-blame t))
     (github-browse-file force-master)))
+
+;;;###autoload
+(defun github-browse-commit ()
+  "Show the GitHub page for the current commit."
+  (interactive)
+  (let* ((commit (github-browse-file--guess-commit))
+         (url (concat "https://github.com/"
+                      (github-browse-file--relative-url)
+                      "/commit/"
+                      commit)))
+    (if github-browse-file-visit-url
+        (browse-url url)
+      (message "GitHub: %s" url))))
 
 ;;;###autoload
 (defun github-browse-new-issue ()
