@@ -200,5 +200,17 @@ region."
                      "/issues/new")))
     (browse-url url)))
 
+;;;###autoload
+(defun github-browse-pull-request ()
+  "Visit the current branch's comparison/pull request on Github."
+  (interactive)
+  (let ((url (concat "https://github.com/"
+                     (github-browse-file--relative-url)
+                     "/compare/"
+                     (github-browse-file--remote-branch))))
+    (if github-browse-file-visit-url
+        (browse-url url)
+      (message "GitHub: %s" url))))
+
 (provide 'github-browse-file)
 ;;; github-browse-file.el ends here
