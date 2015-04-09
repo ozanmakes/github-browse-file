@@ -115,6 +115,7 @@ the kill ring."
   (let ((url (concat "https://github.com/"
                      (github-browse-file--relative-url) "/"
                      (cond ((eq major-mode 'magit-status-mode) "tree")
+                           ((eq major-mode 'magit-commit-mode) "commit")
                            (github-browse-file--view-blame "blame")
                            (t "blob")) "/"
                      (github-browse-file--current-rev) "/"
