@@ -105,6 +105,10 @@ If github-browse-file--force-master is non-nil, return \"master\".
 Otherwise, return the name of the current  branch."
   (cond
    (github-browse-file--force-master "master")
+   ((eq major-mode 'magit-commit-mode)
+    (save-excursion
+      (beginning-of-buffer)
+      (thing-at-point 'word t)))
    ((github-browse-file--ahead-p) (github-browse-file--remote-branch))
    (t (let ((rev (vc-git--run-command-string nil "rev-parse" "HEAD")))
         (and rev (replace-regexp-in-string "\n" "" rev))))))
