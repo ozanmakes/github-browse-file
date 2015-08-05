@@ -142,7 +142,7 @@ default to current line."
       (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
           (format "L%d" start)
-        (format "L%d-%d" start end))))
+        (format "L%d-L%d" start end))))
    (github-browse-file-show-line-at-point
     (format "L%d" (line-number-at-pos (point))))))
 
