@@ -5,7 +5,7 @@ View the file you're editing in Emacs on GitHub.
 
 ### Installation:
 
-Available as a package in [Marmalade](http://marmalade-repo.org/) and [MELPA](http://melpa.milkbox.net/).
+Available as a package in [Marmalade](https://marmalade-repo.org/) and [MELPA](http://melpa.org/).
 
 `M-x package-install github-browse-file`
 
