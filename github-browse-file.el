@@ -107,7 +107,7 @@ Otherwise, return the name of the current  branch."
    (github-browse-file--force-master "master")
    ((eq major-mode 'magit-commit-mode)
     (save-excursion
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (thing-at-point 'word t)))
    ((github-browse-file--ahead-p) (github-browse-file--remote-branch))
    (t (let ((rev (vc-git--run-command-string nil "rev-parse" "HEAD")))
