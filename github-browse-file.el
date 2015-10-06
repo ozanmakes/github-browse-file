@@ -63,6 +63,10 @@ This should only ever be `let'-bound, not set outright.")
   "Whether to use \"master\" regardless of current branch
 This should only ever be `let'-bound, not set outright.")
 
+(defvar github-browse-file--magit-commit-link-modes
+  '(magit-commit-mode magit-revision-mode magit-log-mode)
+  "Non-file magit modes that should link to commits.")
+
 (defun github-browse-file--relative-url ()
   "Return \"username/repo\" for current repository.
 
@@ -105,10 +109,8 @@ If github-browse-file--force-master is non-nil, return \"master\".
 Otherwise, return the name of the current  branch."
   (cond
    (github-browse-file--force-master "master")
-   ((eq major-mode 'magit-commit-mode)
-    (save-excursion
-      (beginning-of-buffer)
-      (thing-at-point 'word t)))
+   ((member major-mode github-browse-file--magit-commit-link-modes)
+    (magit-commit-at-point))
    ((github-browse-file--ahead-p) (github-browse-file--remote-branch))
    (t (let ((rev (vc-git--run-command-string nil "rev-parse" "HEAD")))
         (and rev (replace-regexp-in-string "\n" "" rev))))))
@@ -119,7 +121,7 @@ the kill ring."
   (let ((url (concat "https://github.com/"
                      (github-browse-file--relative-url) "/"
                      (cond ((eq major-mode 'magit-status-mode) "tree")
-                           ((eq major-mode 'magit-commit-mode) "commit")
+                           ((member major-mode github-browse-file--magit-commit-link-modes) "commit")
                            (github-browse-file--view-blame "blame")
                            (t "blob")) "/"
                            (github-browse-file--current-rev) "/"
@@ -148,12 +150,12 @@ default to current line."
 
 (defun github-browse-file--guess-commit ()
   "Guess the current git commit.
-If you are in any magit mode, use `magit-branch-or-commit-at-point'.
+If you are in any magit mode, use `magit-commit-at-point'.
 Otherwise, if the region is active, use that.
 Otherwse, use `github-browse-file--current-rev'."
   (cond
-   ((derived-mode-p 'magit-mode)
-    (magit-branch-or-commit-at-point))
+   ((and (derived-mode-p 'magit-mode) (magit-commit-at-point))
+    (magit-commit-at-point))
    ((region-active-p)
     (buffer-substring (region-beginning) (region-end)))
    (t (github-browse-file--current-rev))))
@@ -192,27 +194,6 @@ region."
                       (github-browse-file--relative-url)
                       "/commit/"
                       commit)))
-    (if github-browse-file-visit-url
-        (browse-url url)
-      (message "GitHub: %s" url))))
-
-;;;###autoload
-(defun github-browse-new-issue ()
-  "Open the new issue page for this Github repository."
-  (interactive)
-  (let ((url (concat "https://github.com/"
-                     (github-browse-file--relative-url)
-                     "/issues/new")))
-    (browse-url url)))
-
-;;;###autoload
-(defun github-browse-pull-request ()
-  "Visit the current branch's comparison/pull request on Github."
-  (interactive)
-  (let ((url (concat "https://github.com/"
-                     (github-browse-file--relative-url)
-                     "/compare/"
-                     (github-browse-file--remote-branch))))
     (if github-browse-file-visit-url
         (browse-url url)
       (message "GitHub: %s" url))))
