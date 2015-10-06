@@ -105,6 +105,10 @@ If github-browse-file--force-master is non-nil, return \"master\".
 Otherwise, return the name of the current  branch."
   (cond
    (github-browse-file--force-master "master")
+   ((eq major-mode 'magit-commit-mode)
+    (save-excursion
+      (beginning-of-buffer)
+      (thing-at-point 'word t)))
    ((github-browse-file--ahead-p) (github-browse-file--remote-branch))
    (t (let ((rev (vc-git--run-command-string nil "rev-parse" "HEAD")))
         (and rev (replace-regexp-in-string "\n" "" rev))))))
@@ -115,6 +119,7 @@ the kill ring."
   (let ((url (concat "https://github.com/"
                      (github-browse-file--relative-url) "/"
                      (cond ((eq major-mode 'magit-status-mode) "tree")
+                           ((eq major-mode 'magit-commit-mode) "commit")
                            (github-browse-file--view-blame "blame")
                            (t "blob")) "/"
                            (github-browse-file--current-rev) "/"
@@ -137,7 +142,7 @@ default to current line."
       (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
           (format "L%d" start)
-        (format "L%d-%d" start end))))
+        (format "L%d-L%d" start end))))
    (github-browse-file-show-line-at-point
     (format "L%d" (line-number-at-pos (point))))))
 
