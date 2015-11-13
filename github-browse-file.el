@@ -1,10 +1,10 @@
 ;;; github-browse-file.el --- View the file you're editing on GitHub
 
-;; Copyright (C) 2013 Ozan Sener <ozan@ozansener.com>
+;; Copyright (C) 2013 Ozan Sener & Contributors
 
 ;; Author: Ozan Sener <ozan@ozansener.com>
 ;; Homepage: https://github.com/osener/github-browse-file
-;; Version: 0.4.0
+;; Version: 0.5.0
 ;; Keywords: convenience vc git github
 ;; Package-Requires: ((cl-lib "0.5"))
 
