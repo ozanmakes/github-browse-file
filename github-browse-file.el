@@ -127,10 +127,7 @@ the kill ring."
                            (github-browse-file--current-rev) "/"
                            (github-browse-file--repo-relative-path)
                            (when anchor (concat "#" anchor)))))
-    (kill-new url)
-    (if github-browse-file-visit-url
-        (browse-url url)
-      (message "GitHub: %s" url))))
+    (github-browse--save-and-view url)))
 
 (defun github-browse-file--anchor-lines ()
   "Calculate anchor from lines in active region or current line
@@ -159,6 +156,13 @@ Otherwse, use `github-browse-file--current-rev'."
    ((region-active-p)
     (buffer-substring (region-beginning) (region-end)))
    (t (github-browse-file--current-rev))))
+
+(defun github-browse--save-and-view (url)
+  "Save url to kill ring and browse or show the url"
+  (kill-new url)
+  (if github-browse-file-visit-url
+      (browse-url url)
+    (message "GitHub: %s" url)))
 
 ;;;###autoload
 (defun github-browse-file (&optional force-master)
@@ -194,9 +198,7 @@ region."
                       (github-browse-file--relative-url)
                       "/commit/"
                       commit)))
-    (if github-browse-file-visit-url
-        (browse-url url)
-      (message "GitHub: %s" url))))
+    (github-browse--save-and-view url)))
 
 (provide 'github-browse-file)
 ;;; github-browse-file.el ends here
