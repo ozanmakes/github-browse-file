@@ -18,8 +18,6 @@ Call `github-browse-file` (for the git blob) or `github-browse-file-blame`
 
 `github-browse-commit` can be used to link to the current commit.
 
-For more information see [my blog post](http://ozansener.com/blog/view-the-file-youre-editing-in-emacs-on-github/).
-
 ### Contributors
 * [Charles Comstock](https://github.com/dgtized)
 * [Justin Talbott](https://github.com/waymondo)
