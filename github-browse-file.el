@@ -194,6 +194,7 @@ region."
                       (github-browse-file--relative-url)
                       "/commit/"
                       commit)))
+    (kill-new url)
     (if github-browse-file-visit-url
         (browse-url url)
       (message "GitHub: %s" url))))
