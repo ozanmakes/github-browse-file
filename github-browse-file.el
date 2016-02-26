@@ -67,14 +67,19 @@ This should only ever be `let'-bound, not set outright.")
   '(magit-commit-mode magit-revision-mode magit-log-mode)
   "Non-file magit modes that should link to commits.")
 
-(defun github-browse-file--relative-url ()
-  "Return \"username/repo\" for current repository.
+(defun github-browse-file--absolute-url ()
+  "Return URL for current repository.
 
 Error out if this isn't a GitHub repo."
-  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
-    (unless url (error "Not in a GitHub repo"))
-    (when (and url (string-match "github.com:?/?\\(.*\\)" url))
-      (replace-regexp-in-string "\\.git$" "" (match-string 1 url)))))
+  (concat
+    "https://"
+    (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
+      (unless url (error "Not in a GitHub repo"))
+      (when (and url (string-match "\\w+@?:?\\(//\\)?\\(.*\\)/?" url))
+        (replace-regexp-in-string ":" "\/"
+                                  (replace-regexp-in-string "\\.git$" ""
+                                                            (match-string 2 url)))))
+    "/"))
 
 (defun github-browse-file--repo-relative-path ()
   "Return the path to the current file relative to the repository root."
@@ -116,10 +121,9 @@ Otherwise, return the name of the current  branch."
         (and rev (replace-regexp-in-string "\n" "" rev))))))
 
 (defun github-browse-file--browse-url (&optional anchor)
-  "Load http://github.com/user/repo/file#ANCHOR in a web browser and add it to
+  "Load https://githubrepo/user/repo/file#ANCHOR in a web browser and add it to
 the kill ring."
-  (let ((url (concat "https://github.com/"
-                     (github-browse-file--relative-url) "/"
+  (let ((url (concat (github-browse-file--absolute-url)
                      (cond ((eq major-mode 'magit-status-mode) "tree")
                            ((member major-mode github-browse-file--magit-commit-link-modes) "commit")
                            (github-browse-file--view-blame "blame")
@@ -194,9 +198,8 @@ region."
   "Show the GitHub page for the current commit."
   (interactive)
   (let* ((commit (github-browse-file--guess-commit))
-         (url (concat "https://github.com/"
-                      (github-browse-file--relative-url)
-                      "/commit/"
+         (url (concat (github-browse-file--absolute-url)
+                      "commit/"
                       commit)))
     (github-browse--save-and-view url)))
 
