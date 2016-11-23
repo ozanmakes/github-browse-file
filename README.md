@@ -1,7 +1,7 @@
 github-browse-file
 ==================
 
-View the file you're editing in Emacs on GitHub.
+View the file you're editing in Emacs on GitHub or Bitbucket depending on the value of `remote.origin.url`.
 
 ### Installation:
 
@@ -17,6 +17,18 @@ Call `github-browse-file` (for the git blob) or `github-browse-file-blame`
 (`C-u`), you can force them to use the "master" branch.
 
 `github-browse-commit` can be used to link to the current commit.
+
+#### Enterprise support
+
+If you use Github Enterprise or Bitbucket Server, add your domain to `github-browse-file-domains` via `customize` or use something like in your init file:
+
+    (add-to-list 'github-browse-file-domains '("git.dayjob.com" :type github))
+    
+For Bitbucket you would do:
+
+    (add-to-list 'github-browse-file-domains '("git.dayjob.com" :type bitbucket))
+    
+**Note:** This assumes that your hosted instance is listening on https.
 
 ### Contributors
 * [Charles Comstock](https://github.com/dgtized)

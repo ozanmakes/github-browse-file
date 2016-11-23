@@ -50,10 +50,39 @@
   :group 'github-browse-file
   :type 'boolean)
 
+(defcustom github-browse-file-domains `(("github.com"
+                                         :type github)
+                                        ("bitbucket.org"
+                                         :type bitbucket))
+  "Domains to match against and their repo types from `github-browse-file--repo-types'."
+  :group 'github-browse-file
+  :type '(alist :key-type string
+                :value-type (plist :key-type (const :type)
+                                   :value-type (choice (const bitbucket)
+                                                       (const github)))
+                ))
+
+
 (defcustom github-browse-file-show-line-at-point nil
   "If non-nil, link to the current line or active region"
   :group 'github-browse-file
   :type 'boolean)
+
+(defvar github-browse-file--repo-types '((github
+                                          :commit-dir "commit"
+                                          :src-dir "blob"
+                                          :blame-dir "blame"
+                                          :tree-dir "tree"
+                                          :anchor github-browse-file--format-anchors-github
+                                          )
+                                         (bitbucket
+                                          :commit-dir "commits"
+                                          :src-dir "src"
+                                          :blame-dir "annotate"
+                                          :tree-dir "src"
+                                          :anchor github-browse-file--format-anchors-bitbucket))
+  "The different supported enterprise type repositories supported.
+Based on the type, it informs `github-browse-file--absolute-url' how to construct the URL.")
 
 (defvar github-browse-file--view-blame nil
   "If non-nil, view \"blame\" instead of \"blob\".
@@ -67,14 +96,55 @@ This should only ever be `let'-bound, not set outright.")
   '(magit-commit-mode magit-revision-mode magit-log-mode)
   "Non-file magit modes that should link to commits.")
 
-(defun github-browse-file--relative-url ()
-  "Return \"username/repo\" for current repository.
+(defun github-browse-file--format-anchors-github (&optional anchor)
+  (cond
+   ((= 1 (length anchor))
+    (format "L%d" (car anchor)))
+   ((= 2 (length anchor))
+    (format "L%d-L%d" (car anchor) (car (cdr anchor))))
+   (t "")))
 
-Error out if this isn't a GitHub repo."
-  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
-    (unless url (error "Not in a GitHub repo"))
-    (when (and url (string-match "github.com:?/?\\(.*\\)" url))
-      (replace-regexp-in-string "\\.git$" "" (match-string 1 url)))))
+(defun github-browse-file--format-anchors-bitbucket (&optional anchor)
+  ""
+  (let ((file-name (file-name-nondirectory (buffer-file-name))))
+    (cond
+     ((= 1 (length anchor))
+      (format "%s-%d" file-name (car anchor)))
+     ((= 2 (length anchor))
+      (format "%s-%d:%d" file-name (car anchor) (car (cdr anchor))))
+     (t ""))
+    )
+  )
+
+(defun github-browse-file--remote-regexp (domain)
+  (eval
+   `(rx bol (or ,(concat  "git@" domain ":")
+                (and (or "git" "ssh" "http" "https") "://"
+                     (* nonl) (? "@") ,domain "/"))
+        (and (group (* nonl) "/" (* nonl))) (? ".git"))))
+
+(defun github-browse-file--get-regexps ()
+  "Return the plist keyed by regexp of repo information."
+  (loop for (key . domain-plist) in github-browse-file-domains
+        collect (cons (github-browse-file--remote-regexp key)
+                      (plist-put domain-plist :url (concat "https://" key)))))
+
+(defun github-browse-file--absolute-url (directory current-rev relative-path anchor)
+  "Return \"https://DOMAIN/username/repo/current-rev/relative-path#anchor\" for current file.
+
+  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url"))
+Error out if this isn't a remote repo."
+        (regexps (github-browse-file--get-regexps)))
+    (unless url (error "Not in a remote repo"))
+    (cl-loop for (regexp . domain-plist) in regexps
+             if (and url (string-match regexp url))
+             return (let ((repo-plist (cdr (assoc (plist-get domain-plist :type) github-browse-file--repo-types))))
+                      (concat (plist-get domain-plist :url) "/"
+                              (replace-regexp-in-string "\\.git$" "" (match-string 1 url)) "/"
+                              (plist-get repo-plist directory) "/"
+                              (when current-rev (concat current-rev "/"))
+                              relative-path
+                              (when anchor (concat "#" (funcall (plist-get repo-plist :anchor) anchor))))))))
 
 (defun github-browse-file--repo-relative-path ()
   "Return the path to the current file relative to the repository root."
@@ -116,17 +186,14 @@ Otherwise, return the name of the current  branch."
         (and rev (replace-regexp-in-string "\n" "" rev))))))
 
 (defun github-browse-file--browse-url (&optional anchor)
-  "Load http://github.com/user/repo/file#ANCHOR in a web browser and add it to
+  "Load http://DOMAIN/user/repo/file#ANCHOR in a web browser and add it to
 the kill ring."
-  (let ((url (concat "https://github.com/"
-                     (github-browse-file--relative-url) "/"
-                     (cond ((eq major-mode 'magit-status-mode) "tree")
-                           ((member major-mode github-browse-file--magit-commit-link-modes) "commit")
-                           (github-browse-file--view-blame "blame")
-                           (t "blob")) "/"
-                           (github-browse-file--current-rev) "/"
-                           (github-browse-file--repo-relative-path)
-                           (when anchor (concat "#" anchor)))))
+  (let* ((directory (cond ((eq major-mode 'magit-status-mode) :tree-dir)
+                          ((member major-mode github-browse-file--magit-commit-link-modes) :commit-dir)
+                          (github-browse-file--view-blame :blame-dir)
+                          (t :src-dir)))
+         (current-rev (github-browse-file--current-rev))
+         (url (concat (github-browse-file--absolute-url directory current-rev (github-browse-file--repo-relative-path) anchor))))
     (github-browse--save-and-view url)))
 
 (defun github-browse-file--anchor-lines ()
@@ -140,10 +207,15 @@ default to current line."
           (end (line-number-at-pos (region-end))))
       (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
-          (format "L%d" start)
-        (format "L%d-L%d" start end))))
+          `(,start nil)
+          ;; (format "L%d" start)
+        ;; (format "L%d-L%d" start end)
+        `(,start ,end)
+        )))
    (github-browse-file-show-line-at-point
-    (format "L%d" (line-number-at-pos (point))))))
+    `(,(line-number-at-pos (point)))
+    ;; (format "L%d" (line-number-at-pos (point)))
+    )))
 
 (defun github-browse-file--guess-commit ()
   "Guess the current git commit.
@@ -194,10 +266,7 @@ region."
   "Show the GitHub page for the current commit."
   (interactive)
   (let* ((commit (github-browse-file--guess-commit))
-         (url (concat "https://github.com/"
-                      (github-browse-file--relative-url)
-                      "/commit/"
-                      commit)))
+         (url (github-browse-file--absolute-url :commit-dir commit nil nil)))
     (github-browse--save-and-view url)))
 
 (provide 'github-browse-file)
