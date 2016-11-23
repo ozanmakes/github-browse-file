@@ -68,6 +68,12 @@
   :group 'github-browse-file
   :type 'boolean)
 
+
+(defcustom github-browse-file-remote-names'("origin")
+  "Names of remote repositories to look for."
+  :group 'github-browse-file
+  :type '(repeat string))
+
 (defvar github-browse-file--repo-types '((github
                                           :commit-dir "commit"
                                           :src-dir "blob"
@@ -129,11 +135,20 @@ This should only ever be `let'-bound, not set outright.")
         collect (cons (github-browse-file--remote-regexp key)
                       (plist-put domain-plist :url (concat "https://" key)))))
 
+(defun github-browse-file--get-remote-url ()
+  "Get the URL of the remote repository.
+Looks for the first URL that is returned for the remotes in `github-browse-file-remote-names'."
+  (let ((possible-urls (cl-loop for repo-name in github-browse-file-remote-names
+                                collect (vc-git--run-command-string nil "config" (format "remote.%s.url" repo-name)))))
+    (cl-loop for remote-url in possible-urls
+             if remote-url
+             return remote-url)))
+
 (defun github-browse-file--absolute-url (directory current-rev relative-path anchor)
   "Return \"https://DOMAIN/username/repo/current-rev/relative-path#anchor\" for current file.
 
-  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url"))
 Error out if this isn't a remote repo."
+  (let ((url (github-browse-file--get-remote-url))
         (regexps (github-browse-file--get-regexps)))
     (unless url (error "Not in a remote repo"))
     (cl-loop for (regexp . domain-plist) in regexps

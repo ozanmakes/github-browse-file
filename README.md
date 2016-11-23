@@ -30,6 +30,15 @@ For Bitbucket you would do:
     
 **Note:** This assumes that your hosted instance is listening on https.
 
+#### Remotes by a different name
+
+If your remote isn't named `origin`, you may modify the `github-browse-file-remote-names` to add your differently named remote.  For example:
+
+    (setq github-browse-file-remote-names '("upstream" "origin"))
+    
+The order of this list matters as the first remote name that returns a url, is the one that is used for the link that is generated.
+
+
 ### Contributors
 * [Charles Comstock](https://github.com/dgtized)
 * [Justin Talbott](https://github.com/waymondo)
