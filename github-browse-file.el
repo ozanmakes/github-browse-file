@@ -88,16 +88,21 @@ Error out if this isn't a GitHub repo."
     (and (> (length rev) 0)
          (string-equal (substring rev 0 1) ">"))))
 
+(defun github-browse-file--remote-branch-from-git ()
+  (let ((ref (replace-regexp-in-string
+              "\n" ""
+              (vc-git--run-command-string nil "symbolic-ref" "-q" "HEAD"))))
+    (replace-regexp-in-string
+     "\n" ""
+     (vc-git--run-command-string
+      nil "for-each-ref" "--format=%(upstream:short)" ref))))
+
 (defun github-browse-file--remote-branch ()
   "Return the name of remote branch current branch is tracking.
 If there is none return 'master'."
-  (let* ((ref (replace-regexp-in-string
-               "\n" ""
-               (vc-git--run-command-string nil "symbolic-ref" "-q" "HEAD")))
-         (origin-branch (replace-regexp-in-string
-                         "\n" ""
-                         (vc-git--run-command-string
-                          nil "for-each-ref" "--format=%(upstream:short)" ref)))
+  (let* ((origin-branch (or (and (fboundp 'magit-get-push-branch)
+                                 (magit-get-push-branch))
+                            (github-browse-file--remote-branch-from-git)))
          (branch-name (mapconcat 'identity
                                  (cdr (split-string origin-branch "/"))
                                  "/")))
