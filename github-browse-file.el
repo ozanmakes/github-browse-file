@@ -67,14 +67,15 @@ This should only ever be `let'-bound, not set outright.")
   '(magit-commit-mode magit-revision-mode magit-log-mode)
   "Non-file magit modes that should link to commits.")
 
-(defun github-browse-file--relative-url ()
+(defun github-browse-file--repo-host-and-url-path ()
   "Return \"username/repo\" for current repository.
 
 Error out if this isn't a GitHub repo."
   (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
     (unless url (error "Not in a GitHub repo"))
-    (when (and url (string-match "github.com:?/?\\(.*\\)" url))
-      (replace-regexp-in-string "\\.git$" "" (match-string 1 url)))))
+    (when (and url (string-match "@\\(.*\\)" url))
+      (replace-regexp-in-string ":" "/"
+                                (replace-regexp-in-string "\\.git$" "" (match-string 1 url))))))
 
 (defun github-browse-file--repo-relative-path ()
   "Return the path to the current file relative to the repository root."
@@ -118,15 +119,15 @@ Otherwise, return the name of the current  branch."
 (defun github-browse-file--browse-url (&optional anchor)
   "Load http://github.com/user/repo/file#ANCHOR in a web browser and add it to
 the kill ring."
-  (let ((url (concat "https://github.com/"
-                     (github-browse-file--relative-url) "/"
+  (let ((url (concat "https://"
+                     (github-browse-file--repo-host-and-url-path) "/"
                      (cond ((eq major-mode 'magit-status-mode) "tree")
                            ((member major-mode github-browse-file--magit-commit-link-modes) "commit")
                            (github-browse-file--view-blame "blame")
                            (t "blob")) "/"
-                           (github-browse-file--current-rev) "/"
-                           (github-browse-file--repo-relative-path)
-                           (when anchor (concat "#" anchor)))))
+                     (github-browse-file--current-rev) "/"
+                     (github-browse-file--repo-relative-path)
+                     (when anchor (concat "#" anchor)))))
     (github-browse--save-and-view url)))
 
 (defun github-browse-file--anchor-lines ()
@@ -194,8 +195,8 @@ region."
   "Show the GitHub page for the current commit."
   (interactive)
   (let* ((commit (github-browse-file--guess-commit))
-         (url (concat "https://github.com/"
-                      (github-browse-file--relative-url)
+         (url (concat "https://"
+                      (github-browse-file--repo-host-and-url-path)
                       "/commit/"
                       commit)))
     (github-browse--save-and-view url)))
