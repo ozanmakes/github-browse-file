@@ -71,7 +71,10 @@ This should only ever be `let'-bound, not set outright.")
   "Return \"username/repo\" for current repository.
 
 Error out if this isn't a GitHub repo."
-  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url")))
+  (let ((url (vc-git--run-command-string nil "config" "remote.origin.url"))
+        (lremote (substring (vc-git--run-command-string nil "config" "forge.remote") 0 -1)))
+    (if lremote
+        (setq url (vc-git--run-command-string nil "config" (format "remote.%s.url" lremote))))
     (unless url (error "Not in a GitHub repo"))
     (when (and url (string-match "github.com:?/?\\(.*\\)" url))
       (replace-regexp-in-string "\\.git$" "" (match-string 1 url)))))
